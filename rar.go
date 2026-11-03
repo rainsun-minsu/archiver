@@ -8,11 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nwaples/rardecode"
+	"github.com/nwaples/rardecode/v2"
 )
 
 // Rar is for RAR archive format
 var Rar rarFormat
+
+// Bound decoder memory while retaining ordinary RAR extraction support.
+const rarMaxDictionarySize = 256 << 20
 
 func init() {
 	RegisterFormat("Rar", Rar)
@@ -59,7 +62,7 @@ func (rarFormat) Make(rarPath string, filePaths []string) error {
 // Read extracts the RAR file read from input and puts the contents
 // into destination.
 func (rarFormat) Read(input io.Reader, destination string) error {
-	rr, err := rardecode.NewReader(input, "")
+	rr, err := rardecode.NewReader(input, rardecode.Password(""), rardecode.MaxDictionarySize(rarMaxDictionarySize))
 	if err != nil {
 		return fmt.Errorf("read: failed to create reader: %v", err)
 	}
